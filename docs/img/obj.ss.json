@@ -1,0 +1,29 @@
+{
+	
+	"frame": {
+		"width": 96,
+		"height": 96,
+		"cols": 4,
+		"rows": 1
+	},
+
+	"animations": {
+			"chara_stand": {
+				"frames": [ 0 ],
+				"frequency": 5
+			},
+			"chara_attack": {
+				"frames": [ 1 ],
+				"frequency": 10,
+				"next": "chara_stand"
+			},
+			"chara_push": {
+				"frames": [ 2 ],
+				"frequency": 5
+			},
+			"stone": {
+				"frames": [ 3 ],
+				"frequency": 5
+			}
+	}
+}
