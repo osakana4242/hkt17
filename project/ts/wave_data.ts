@@ -54,16 +54,17 @@ const blockDataArr: IBlockData[] = [
 	{
 		"key": "blc2",
 		"noteArr": [
-			{ "time": 480 * 0, "type": 1, "startX": -0.5, "startY": -0.5, "endX": -0.5, "endY": 0.5, },
-			{ "time": 480 * 2, "type": 1, "startX": 0.5, "startY": -0.5, "endX": 0.5, "endY": 0.5, },
+			{ "time": 480 * 0, "type": 1, "startX": -0.5, "startY": -0.5, "endX": 0.5, "endY": 0.5, },
+			{ "time": 480 * 2, "type": 1, "startX": 0.5, "startY": -0.5, "endX": -0.5, "endY": 0.5, },
 			{ "time": 480 * 3, "type": 2, "startX": 0, "startY": 0, "endX": 0, "endY": 0, },
 		],
 	},
 	{
 		"key": "blc3",
 		"noteArr": [
-			{ "time": 480 * 0, "type": 1, "startX": -0.5, "startY": -0.5, "endX": 0.5, "endY": 0.5, },
-			{ "time": 480 * 2, "type": 1, "startX": 0.5, "startY": -0.5, "endX": -0.5, "endY": 0.5, },
+			{ "time": 480 * 0, "type": 1, "startX": -0.25, "startY": -0.25, "endX": 0.25, "endY": 0.25, },
+			{ "time": 480 * 1, "type": 1, "startX": 0.25, "startY": -0.25, "endX": -0.25, "endY": 0.25, },
+			{ "time": 480 * 2, "type": 1, "startX": 0.0, "startY": -0.5, "endX": 0.0, "endY": 0.5, },
 			{ "time": 480 * 3, "type": 2, "startX": 0, "startY": 0, "endX": 0, "endY": 0, },
 		],
 	},
@@ -109,6 +110,32 @@ const blockDataArr: IBlockData[] = [
 			{ "time": 480 * 0, "type": 1, "startX": -0.5, "startY": -0.5, "endX": 0.5, "endY": 0.5, },
 			{ "time": 480 * 1, "type": 1, "startX": 0.0, "startY": -0.5, "endX": 0.0, "endY": 0.5, },
 			{ "time": 480 * 2, "type": 1, "startX": 0.5, "startY": -0.5, "endX": -0.5, "endY": 0.5, },
+			{ "time": 480 * 3, "type": 2, "startX": 0, "startY": 0, "endX": 0, "endY": 0, },
+		],
+	},
+	{
+		"key": "blc9", // \ v / - \ | /
+		"noteArr": [
+			{ "time": 480 * 0, "type": 1, "startX": 0.5, "startY": 0.5, "endX": -0.5, "endY": -0.5, },
+			{ "time": 480 * 1, "type": 1, "startX": 0.0, "startY": 0.5, "endX": 0.0, "endY": -0.5, },
+			{ "time": 480 * 2, "type": 1, "startX": -0.5, "startY": 0.5, "endX": 0.5, "endY": -0.5, },
+			{ "time": 480 * 3, "type": 2, "startX": 0, "startY": 0, "endX": 0, "endY": 0, },
+		],
+	},
+	{
+		"key": "blc10", // | -
+		"noteArr": [
+			{ "time": 480 * 0, "type": 1, "startX": 0.0, "startY": -0.25, "endX": 0.0, "endY": 0.25, },
+			{ "time": 480 * 4, "type": 1, "startX": -0.25, "startY": 0.0, "endX": 0.25, "endY": 0.0, },
+			{ "time": 480 * 7, "type": 2, "startX": 0, "startY": 0, "endX": 0, "endY": 0, },
+		],
+	},
+	{
+		"key": "blc11", // \ v / - \ | /
+		"noteArr": [
+			{ "time": 480 * 0, "type": 1, "startX": -0.5, "startY": -0.5, "endX": 0.5, "endY": 0.5, },
+			{ "time": 480 * 1, "type": 1, "startX": 0.0, "startY": -0.5, "endX": 0.0, "endY": 0.5, },
+			{ "time": 480 * 2, "type": 1, "startX": 0.5, "startY": -0.5, "endX": -0.5, "endY": 0.5, },
 			{ "time": 480 * 3, "type": 1, "startX": 0.5, "startY": 0.0, "endX": -0.5, "endY": 0.0, },
 			{ "time": 480 * 4, "type": 1, "startX": 0.5, "startY": 0.5, "endX": -0.5, "endY": -0.5, },
 			{ "time": 480 * 5, "type": 1, "startX": 0.0, "startY": 0.5, "endX": 0.0, "endY": -0.5, },
@@ -139,6 +166,9 @@ const questDataArr: IQuestData[] = [
 			blockDataDict["blc6"],
 			blockDataDict["blc7"],
 			blockDataDict["blc8"],
+			blockDataDict["blc9"],
+			blockDataDict["blc10"],
+			blockDataDict["blc11"],
 		],
 	},
 ];

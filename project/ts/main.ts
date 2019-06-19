@@ -219,8 +219,13 @@ class QuestWork {
 	}
 
 	getBpm() {
-		return this.getQuestData().bpm + (this.loopCount * 10);
+		return this.getQuestData().bpm + (this.loopCount * 20);
 	}
+}
+
+interface IScore {
+	score: number;
+	text: string;
 }
 
 class HogeScene {
@@ -228,12 +233,11 @@ class HogeScene {
 	lines: string[][] = [[], [], []];
 	mainLabel: Label;
 	centerTelop: Label;
-	player: GameObject;
 	goArr: GameObject[] = [];
 	stageLeft = 0;
 	enemyRect = new Rect(-64, -64, DF.SC_W + 160, DF.SC_H + 128);
 	screenRect = new Rect(0, 0, DF.SC_W, DF.SC_H);
-	stageRight = 32;
+	centerRect: Rect;
 	isStarted = false;
 	isEnd = false;
 	sm = new StateMachine();
@@ -260,13 +264,23 @@ class HogeScene {
 	lastLine: PathShape | null = null;
 	playerLineIndex = 0;
 	playerLineStartTime = 0;
-	playerHp = 5;
+	playerHp = 3;
 	playerHasDamage = false;
 
 	constructor(pScene: phina.display.DisplayScene) {
 		this.scene = pScene;
 		pScene.backgroundColor = '#ccccc0';
-		this.player = this.createPlayer();
+
+		{
+			const minSize = Math.min(this.screenRect.width, this.screenRect.height);
+			const maxSize = Math.max(this.screenRect.width, this.screenRect.height);
+			this.centerRect = Rect(
+				(this.screenRect.width - minSize) * 0.5,
+				(this.screenRect.height - minSize) * 0.5,
+				minSize,
+				minSize
+			);
+		}
 
 		{
 			const label = Label({
@@ -312,7 +326,7 @@ class HogeScene {
 
 	static state1(self: HogeScene, evt: StateEvent) {
 		if (evt.sm.time === 0) {
-			self.centerTelop.text = 'ポンポンライン';
+			self.centerTelop.text = 'ポンポンライン\n(クリックで開始)';
 			self.centerTelop.fill = '#444444';
 		}
 
@@ -382,7 +396,7 @@ class HogeScene {
 					self.playerLineStartTime,
 					paths
 				);
-				self.score += score;
+				self.score += score.score;
 				var pos = paths[paths.length - 1];
 				HogeScene.addScoreLabel(self, score, Vector2(pos.x, pos.y - 40));
 				if (self.score <= 0) {
@@ -396,12 +410,12 @@ class HogeScene {
 		return null;
 	}
 
-	static addScoreLabel(self: HogeScene, score: number, pos: Vector2) {
-		let text = `+${score}`;
-		if (score <= 0) {
-			text = 'NULL!';
+	static addScoreLabel(self: HogeScene, score: IScore, pos: Vector2) {
+		let text = `+${score.score}`;
+		if (score.score <= 0) {
+			text = 'MISS!';
 		} else {
-			text = 'GOOD ' + text;
+			text = `${score.text} ` + text;
 		}
 		const label = Label({
 			text: text,
@@ -469,99 +483,60 @@ class HogeScene {
 		return go;
 	}
 
-	createPlayer() {
-		const go = new GameObject();
-		go.name = 'player';
-		go.type = GameObjectType.PLAYER;
-		go.tr.position.x = this.screenRect.centerX;
-		go.tr.position.y = this.screenRect.centerY;
-
-		go.player = new Player();
-
-		const sprite = PathShape({
-			paths: [
-				Vector2(8, 8),
-				Vector2(32, 24),
-			],
-		});
-
-		// const anim = FrameAnimation("obj");
-		// anim.attachTo(sprite);
-		// anim.gotoAndPlay('chara_stand');
-		// sprite.addChildTo(this.scene);
-		// go.anim = anim;
-		go.sprite = sprite;
-
-		this.goArr.push(go);
-		return go;
+	static normalizePosition(centerRect: Rect, v1: Vector2) {
+		v1.x = (v1.x - centerRect.centerX) / (centerRect.width * 0.5);
+		v1.y = (v1.y - centerRect.centerY) / (centerRect.height * 0.5);
+		return v1;
 	}
 
-	createStone(quest: HogeScene, app: GameApp) {
-		const go = new GameObject();
-		go.name = 'stone';
-		go.type = GameObjectType.STONE;
-		const sprite = Sprite('obj', 96, 96);
-		const fa = FrameAnimation("obj");
-		fa.attachTo(sprite);
-		fa.gotoAndPlay('stone');
-		sprite.addChildTo(this.scene);
-		go.sprite = sprite;
-		this.goArr.push(go);
-		return go;
-	}
-
-	createEnemy(quest: HogeScene, app: GameApp, enemyId: string) {
-		const stone = this.createStone(this, app);
-		const enemyData = quest.enemyDataDict[enemyId];
-		const go = new GameObject();
-		go.name = `enemy${go.instanceId}`;
-		go.type = GameObjectType.ENEMY;
-		go.enemy = new Enemy();
-		go.enemy.stoneId = stone.instanceId;
-		go.enemy.scoreScale = enemyData.scoreScale;
-		go.enemy.firstSpeed = enemyData.speed;
-		const sprite = Sprite('obj', 96, 96);
-		const fa = FrameAnimation("obj");
-		fa.attachTo(sprite);
-		fa.gotoAndPlay('chara_push');
-		sprite.addChildTo(this.scene);
-		go.sprite = sprite;
-
-		go.life = new Life();
-		go.life.hpMax = enemyData.hp;
-		go.life.hp = go.life.hpMax;
-
-
-		go.collider = new Collider();
-		go.collider.sprite.height = 56;
-		go.collider.sprite.addChildTo(this.scene);
-		go.collider.sprite.setPosition(120, 120);
-
-		go.shaker = new Shaker();
-		this.resetEnemy(go);
-
-		var scale = (1 + quest.questWork.loopCount * 0.5);
-		this.goArr.push(go);
-		return go;
-	}
-
-	resetEnemy(go: GameObject) {
-		if (!go.enemy) return;
-		if (!go.life) return;
-		go.tr.position.x = this.enemyRect.right;
-		go.tr.position.y = this.enemyRect.centerY - 100 + Math.random() * 200;
-		go.enemy.speed = go.enemy.firstSpeed;
-		go.life.hp = go.life.hpMax;
+	static unnormalizePosition(centerRect: Rect, v1: Vector2) {
+		v1.x = (v1.x * centerRect.width * 0.5) + centerRect.centerX;
+		v1.y = (v1.y * centerRect.height * 0.5) + centerRect.centerY;
+		return v1;
 	}
 
 	calcScore(questWork: QuestWork, noteArr: INoteData[], lineIndex: number, startTime: number, posArr: Vector2[]) {
-		if (!MathHelper.isInRange(lineIndex, 0, noteArr.length)) return 0;
+		const result = {
+			score: 0,
+			text: '',
+		};
+		if (!MathHelper.isInRange(lineIndex, 0, noteArr.length)) return result;
 		const note = noteArr[lineIndex];
 		const timeSpan = MidiHelper.tickToMsec(questWork.getBpm(), questWork.getQuestData().bpqn, note.time) - startTime;
-		const threshold = 500;
+		const tThreshold = 500;
 		const timeSpan2 = Math.abs(timeSpan);
-		if (threshold <= timeSpan2) return 0;
-		return Math.floor((threshold - timeSpan2) * 100 / threshold);
+		if (tThreshold <= timeSpan2) return result;
+
+		const dThreshold = 0.2;
+
+		const centerRect = this.centerRect;
+		let v1 = posArr[0].clone();
+		let v2 = posArr[posArr.length - 1].clone();
+		v1 = HogeScene.normalizePosition(centerRect, v1);
+		v2 = HogeScene.normalizePosition(centerRect, v2);
+		const startD = Vector2(note.startX, note.startY).distance(v1);
+		const endD = Vector2(note.endX, note.endY).distance(v2);
+
+		const score1 = Math.max(tThreshold - timeSpan2, 0) / tThreshold;
+		const score2 = Math.max(dThreshold - startD, 0) / dThreshold;
+		const score3 = Math.max(dThreshold - endD, 0) / dThreshold;
+		const total = (score1 + score2 + score3) / 3.0;
+		let text = '';
+		if (total < 0.2) {
+			text = 'D';
+		} else if (total < 0.4) {
+			text = 'C';
+		} else if (total < 0.6) {
+			text = 'B';
+		} else if (total < 0.8) {
+			text = 'A';
+		} else {
+			text = 'S';
+		}
+
+		result.text = text;
+		result.score = Math.floor(total * 3000);
+		return result;
 	}
 
 	updateQuest(myScene: HogeScene, app: GameApp) {
@@ -574,7 +549,8 @@ class HogeScene {
 			const blockData = questData.blockArr[questWork.blockIndex];
 			const noteArr = blockData.noteArr;
 			const qnDuration = MidiHelper.tickToMsec(questWork.getBpm(), questData.bpqn, questData.bpqn);
-			const barDuration = noteArr[noteArr.length - 1].time + qnDuration;
+			const lastNote = noteArr[noteArr.length - 1];
+			const barDuration = MidiHelper.tickToMsec(questWork.getBpm(), questData.bpqn, lastNote.time + questData.bpqn);
 			for (var i = questWork.noteIndex; i < noteArr.length; i++) {
 				const note = noteArr[i];
 				const noteTime = MidiHelper.tickToMsec(questWork.getBpm(), questData.bpqn, note.time);
@@ -583,7 +559,11 @@ class HogeScene {
 				if (questWork.state == 1) {
 					if (myScene.playerLineIndex < i) {
 						myScene.playerLineIndex = i
-						HogeScene.addScoreLabel(myScene, 0, Vector2(myScene.screenRect.centerX, myScene.screenRect.centerY));
+						const score = {
+							score: 0,
+							text: '',
+						};
+						HogeScene.addScoreLabel(myScene, score, Vector2(myScene.screenRect.centerX, myScene.screenRect.centerY));
 						myScene.playerHasDamage = true;
 					}
 				}
@@ -592,15 +572,12 @@ class HogeScene {
 					case 1: {
 						// slash.
 						const stateColor = (questWork.state <= 0) ? '#ff0000' : '#0000ff';
-						const size = Math.min(myScene.screenRect.width, myScene.screenRect.height);
-						const sx = myScene.screenRect.centerX + (note.startX * size * 0.5);
-						const sy = myScene.screenRect.centerY + (note.startY * size * 0.5);
-						const ex = myScene.screenRect.centerX + (note.endX * size * 0.5);
-						const ey = myScene.screenRect.centerY + (note.endY * size * 0.5);
+						const sPos = HogeScene.unnormalizePosition(myScene.centerRect, Vector2(note.startX, note.startY));
+						const ePos = HogeScene.unnormalizePosition(myScene.centerRect, Vector2(note.endX, note.endY));
 						const slash = PathShape({
 							paths: [
-								Vector2(sx, sy),
-								Vector2(sx, sy)
+								sPos.clone(),
+								sPos.clone()
 							],
 							stroke: stateColor,
 						});
@@ -613,8 +590,8 @@ class HogeScene {
 							const t = MathHelper.progress01(slashTime, slashDuration);
 							slashTime += app.ticker.deltaTime;
 							const paths = slash.getPaths();
-							paths[1].x = LerpHelper.linear(sx, ex, t);
-							paths[1].y = LerpHelper.linear(sy, ey, t);
+							paths[1].x = LerpHelper.linear(sPos.x, ePos.x, t);
+							paths[1].y = LerpHelper.linear(sPos.y, ePos.y, t);
 							const t2 = 1.0 - MathHelper.progress01(slashTime - (slashAliveDuration - slashFadeoutDuration), slashFadeoutDuration);
 							slash.alpha = t2;
 
@@ -627,19 +604,16 @@ class HogeScene {
 					case 2: {
 						if (questWork.state === 1) continue;
 						const stateColor = (questWork.state <= 0) ? '#ff0000' : '#8888ff';
-						const size = Math.min(myScene.screenRect.width, myScene.screenRect.height);
-						const sx = myScene.screenRect.centerX + (note.startX * size * 0.5);
-						const sy = myScene.screenRect.centerY + (note.startY * size * 0.5);
-						const ex = myScene.screenRect.centerX + (note.endX * size * 0.5);
-						const ey = myScene.screenRect.centerY + (note.endY * size * 0.5);
+						const sPos = HogeScene.unnormalizePosition(myScene.centerRect, Vector2(note.startX, note.startY));
+						const ePos = HogeScene.unnormalizePosition(myScene.centerRect, Vector2(note.endX, note.endY));
 						const sprite = Label({
 							text: 'YOUR TURN!',
-							fontSize: 20,
+							fontSize: 48,
 							fontWeight: 'bold',
 							fill: '#8888ff',
 						});
-						sprite.x = myScene.screenRect.centerX;
-						sprite.y = myScene.screenRect.centerY;
+						sprite.x = myScene.centerRect.centerX;
+						sprite.y = myScene.centerRect.centerY;
 						sprite.addChildTo(myScene.scene);
 						const slashDuration = qnDuration * 0.25;
 						const slashFadeoutDuration = qnDuration * 0.25;
@@ -859,7 +833,7 @@ class HogeScene {
 		var text = '';
 		text += 'SCORE: ' + myScene.score;
 		text += ' LIFE: ' + '■'.repeat(myScene.playerHp);
-		text += '\nDEBUG LOOP: ' + questWork.loopCount + ` T1: ${questWork.barTime} T2: ${questWork.time}`;
+		// text += '\nDEBUG LOOP: ' + questWork.loopCount + ` T1: ${questWork.barTime} T2: ${questWork.time}`;
 		myScene.mainLabel.text = text;
 
 	}

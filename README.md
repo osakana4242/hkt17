@@ -1,6 +1,6 @@
 # hkt17 ものまね
 
-https://osakana4242.github.io/hkt16/
+https://osakana4242.github.io/hkt17/
 
 ■遊び方
 
